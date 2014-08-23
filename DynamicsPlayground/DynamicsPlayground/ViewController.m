@@ -8,7 +8,7 @@
 
 #import "ViewController.h"
 
-@interface ViewController ()
+@interface ViewController () <UICollisionBehaviorDelegate>
 
 @end
 
@@ -20,6 +20,7 @@
             
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
     UIView *square = [[UIView alloc] initWithFrame:CGRectMake(100, 100, 100, 100)];
     square.backgroundColor = [UIColor grayColor];
     [self.view addSubview:square];
@@ -34,15 +35,27 @@
     [_animator addBehavior:_gravity];
     
     _collision = [[UICollisionBehavior alloc] initWithItems:@[square]];
+    _collision.collisionDelegate = self;
     _collision.translatesReferenceBoundsIntoBoundary = YES;
     
     // add a boundary that coincides with the top edge
     CGPoint rightEdge = CGPointMake(barrier.frame.origin.x + barrier.frame.size.width, barrier.frame.origin.y);
     [_collision addBoundaryWithIdentifier:@"barrier" fromPoint:barrier.frame.origin toPoint:rightEdge];
     
+    _collision.action = ^{
+        NSLog(@"%@, %@", NSStringFromCGAffineTransform(square.transform), NSStringFromCGPoint(square.center));
+    };
+    
     [_animator addBehavior:_collision];
-    
-    
+}
+
+- (void)collisionBehavior:(UICollisionBehavior *)behavior beganContactForItem:(id<UIDynamicItem>)item withBoundaryIdentifier:(id<NSCopying>)identifier atPoint:(CGPoint)p {
+    NSLog(@"Boundry contact occured - %@", identifier);
+    UIView *view = (UIView *)item;
+    view.backgroundColor = [UIColor yellowColor];
+    [UIView animateWithDuration:0.3 animations:^{
+        view.backgroundColor = [UIColor grayColor];
+    }];
 }
 
 - (void)didReceiveMemoryWarning {
